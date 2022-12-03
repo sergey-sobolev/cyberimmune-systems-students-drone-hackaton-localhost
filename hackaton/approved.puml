@@ -1,0 +1,22 @@
+@startuml
+
+
+legend right
+    | Цвет | Тип |
+    |<#lightgreen>| Доверенный компонент |
+    |<#lightgray>| Недоверенный компонент |
+endlegend
+
+(Drone) as drone #lightgreen
+Operator --> (drone)
+Operator --> (Control_center)
+Operator --> (Mobile)
+(Security_Monitor) as sec_monitor #lightgreen
+(Message_Monitor) as msg_monitor #lightgreen
+(drone) --> (msg_monitor)
+Control_center --> (msg_monitor)
+Mobile --> (msg_monitor)
+(sec_monitor) --> (msg_monitor)
+
+
+@enduml

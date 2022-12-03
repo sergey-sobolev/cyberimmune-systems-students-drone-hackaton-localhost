@@ -1,0 +1,77 @@
+@startuml
+actor Оператор
+participant control_flight as "Управление полетом"
+participant mp_connection as "Связь с МП"
+participant cs_connection as "Связь с УЦ"
+participant gps_pos as "GPS позиционирование"
+participant inert_navi as "Инерциальная навигация"
+participant control_spray as "Управление распрыскивателем"
+participant control_cond_drone as "Контроль состояния дрона"
+participant control_area as "Контроль обстановки"
+
+skinparam sequenceMessageAlign right
+Оператор [#green]-> mp_connection: Аутентификация пользователя
+Оператор -> control_cond_drone : Обслуживание и включение дрона
+control_cond_drone -> control_flight : Инициализация управления полетом
+control_cond_drone -> mp_connection : Отправка отчета о состоянии дрона в МП
+
+alt ошибка инициализации дрона
+control_cond_drone -> Оператор : Индикация неисправности дрона
+control_cond_drone -> mp_connection : Отправка ошибки дрона в МП
+end
+cs_connection [#green]-> control_flight: Сохранение в памяти дрона хэш-суммы для УЦ
+mp_connection [#green]-> control_flight: Сохранение в памяти дрона хэш-суммы для МП
+
+mp_connection -> control_flight : Передача команды на запуск дрона
+control_flight [#green]-> cs_connection : Сравнение хэш-сумм дрона и УЦ
+control_flight [#green]-> mp_connection : Сравнение хэш-сумм дрона и МП
+control_flight -> cs_connection : Запрос полетного задания
+cs_connection -> control_flight : Передача полетного задания дрону
+cs_connection -> mp_connection : Передача полетного задания в МП
+
+alt сбой в получении полетного задания
+control_flight -> mp_connection : Отправка сообщения об ошибке полетного задания
+mp_connection -> cs_connection : Передача информации об ошибке полетного задания в УЦ
+  group Индикация ошибок на дроне (опционально)
+  control_flight -> control_cond_drone : Включение индикации ошибки на дроне
+  control_cond_drone -> Оператор : Индикация ошибки связи с УЦ
+  end
+end
+
+group Действия выполняются на протяжении всего полета
+gps_pos <-> control_flight : Получение координат x,y,z
+gps_pos -> control_area : Получение координат x,y,z
+inert_navi -> control_area : Получение координат x,y,z
+control_flight <-> mp_connection : Запрос состояния дрона
+  alt Сбой GPS
+  control_flight -> cs_connection : Сообщение о потере позиционирования
+  control_flight -> control_flight : Аварийный возврат на базу
+  end
+control_flight <-> inert_navi : Активация инерциальной навигационной системы (опционально)
+control_flight <-> control_area : Активация контроля обстановки
+mp_connection <-> cs_connection : Передача информации о выполнении полета
+  alt Обнаружеие помехи
+  control_flight -> mp_connection : Сообщение об обнаружении помехи
+  control_flight -> control_flight : Маневр уклонения от столкновения
+  mp_connection -> control_flight : Возврат в зону проведения работ
+  mp_connection -> control_flight : Команда дрону от оператора
+  end
+end
+control_flight -> mp_connection : Сообщение о начале полета
+control_flight -> control_flight : Достижение района выполнения работ
+control_flight [#green]-> control_flight : Снимок до
+control_flight -> control_spray : Активация управления распрыскивателей
+alt Обнаружение построенного объекта в зоне распыления
+  control_area -> control_spray : Отключения распрыскивателя
+  control_area -> control_flight : Сигнализация об обнаружении объекта в зоне распыления
+  control_flight -> cs_connection : Сообщение о прекращении распыления
+  control_flight -> control_flight : Возврат в зону проведения работ
+end
+control_flight -> mp_connection : Сообщение о начале работ в районе
+control_flight -> control_flight : Отработка  полетного задания
+control_flight -> control_spray : Выключение распылителя
+control_flight [#green]-> control_flight : Снимок после
+control_flight -> mp_connection : Сообщение о завершении работ
+control_flight -> control_flight : Возвращение на базу
+control_flight <-> cs_connection: Отчет о выполнении полетного задания
+@enduml

@@ -1,0 +1,30 @@
+#Мобильное приложение отправляет дрон домой до выполнения задания
+@startuml
+actor Оператор
+participant control_flight as "Управление полетом"
+participant mp_connection as "Связь с МП"
+participant cs_connection as "Связь с УЦ" 
+
+
+skinparam sequenceMessageAlign right
+Оператор -> mp_connection: Аутентификация пользователя
+cs_connection -> control_flight : Обслуживание и включение дрона
+cs_connection -> control_flight : Сохранение в памяти дрона хэш-суммы для УЦ
+mp_connection -> control_flight : Сохранение в памяти дрона хэш-суммы для МП
+
+mp_connection -> control_flight : Передача команды на запуск дрона
+control_flight -> cs_connection : Cумма хэш равна
+
+
+
+control_flight -> cs_connection : Запрос полетного задания
+cs_connection -> control_flight : Передача полетного задания
+control_flight -> control_flight : Исполнение задания
+activate control_flight
+mp_connection -[#red]> control_flight 
+note right #red: Нелегетимное завершение
+control_flight -> mp_connection : Сообщение о принудительном завершении
+deactivate control_flight
+
+
+@enduml

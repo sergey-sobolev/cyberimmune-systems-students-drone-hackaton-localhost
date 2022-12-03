@@ -1,0 +1,20 @@
+@startuml
+
+actor Оператор
+participant control_flight as "Управление полетом"
+participant mp_connection as "Связь с МП" #red
+participant cs_connection as "Связь с УЦ" 
+
+
+skinparam sequenceMessageAlign right
+Оператор -> mp_connection: Аутентификация пользователя
+cs_connection -> control_flight: Сохранение в памяти дрона хэш-суммы для УЦ 
+mp_connection -> control_flight
+note right #red: Сохранение в памяти дрона хэш-суммы для МП не произошло
+control_flight [#green]-> cs_connection : Сравнение хэш-сумм дрона и УЦ
+control_flight -> cs_connection : Запрос полетного задания
+cs_connection -> control_flight : Передача полетного задания дрону
+control_flight -> mp_connection: сравнение сумм хэш дрона и МП
+mp_connection -> Оператор
+note right #red: Ошибка сравнения суммы хэш
+@enduml

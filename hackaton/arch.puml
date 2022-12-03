@@ -1,0 +1,13 @@
+@startuml
+
+
+
+Operator --> (Drone)
+Operator --> (Control_center)
+Operator --> (Mobile)
+Drone --> (Message_Monitor)
+Control_center --> (Message_Monitor)
+Mobile --> (Message_Monitor)
+(Security_Monitor) --> (Message_Monitor) 
+
+@enduml
