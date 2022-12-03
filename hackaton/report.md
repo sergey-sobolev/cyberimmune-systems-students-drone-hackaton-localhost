@@ -135,51 +135,68 @@
 ```python {lineNo:true}
 
 def check_operation(id, details):
+    global ordering
     authorized = False
+    # print(f"[debug] checking policies for event {id}, details: {details}")
+    print(f"[info] checking policies for event {id},"\
+          f" {details['source']}->{details['deliver_to']}: {details['operation']}")
     src = details['source']
     dst = details['deliver_to']
     operation = details['operation']
-    if  src == 'downloader' and dst == 'manager' \
-        and operation == 'download_done':
+    
+    if src == 'drone_status' and dst == 'mobile_connection' \
+        and operation == 'info':
+        authorized = True  
+    if src == 'mobile_connection' and dst == 'drone_status' \
+        and operation == 'drone_start':
         authorized = True   
-    if src == 'manager' and dst == 'downloader' \
-        and operation == 'download_file':
+    if src == 'drone_status' and dst == 'control_center' \
+        and operation == 'task_add':
         authorized = True   
-    if src == 'manager' and dst == 'storage' \
-        and operation == 'commit_blob':
+    if src == 'control_center' and dst == 'drone_status' \
+        and operation == 'task_response':
         authorized = True   
-    if src == 'manager' and dst == 'verifier' \
-        and operation == 'verification_requested':
+              
+    if src == 'control_center' and dst == 'mobile_connection' \
+        and operation == 'task_info':
         authorized = True   
-    if src == 'verifier' and dst == 'manager' \
-        and operation == 'handle_verification_result':
+    if src == 'drone_status' and dst == 'mobile_connection' \
+        and operation == 'job_error':
+        authorized = True  
+    if src == 'drone_status' and dst == 'control_center' \
+        and operation == 'job_error':
+        authorized = True 
+    if src == 'mobile_connection' and dst == 'drone_status' \
+        and operation == 'status_request':
         authorized = True   
-    if src == 'manager' and dst == 'updater' \
-        and operation == 'proceed_with_update' \
-        and details['verified'] is True:
+    if src == 'drone_status' and dst == 'mobile_connection' \
+        and operation == 'status_response':
         authorized = True   
-    if src == 'storage' and dst == 'manager' \
-        and operation == 'blob_committed':
-        authorized = True   
-    if src == 'verifier' and dst == 'storage' \
-        and operation == 'get_blob':
-        authorized = True
-    if src == 'storage' and dst == 'verifier' \
-        and operation == 'blob_content':
-        authorized = True   
-    if src == 'updater' and dst == 'storage' \
-        and operation == 'get_blob':
-        authorized = True
-    if src == 'storage' and dst == 'updater' \
-        and operation == 'blob_content':
-        authorized = True   
-     
-    return authorized
+    if src == 'mobile_connection' and dst == 'drone_status' \
+        and operation == 'drone_to_home':
+        authorized = True 
+    if src == 'drone_status' and dst == 'control_center' \
+        and operation == 'task_completed':
+        authorized = True 
 
+    if src == 'drone_status' and dst == 'sprayer_control' \
+        and operation == 'on_sprayer':
+        authorized = True 
+    if src == 'sprayer_control' and dst == 'flying_control' \
+        and operation == 'sprayer_condition':
+        authorized = True 
+    if src == 'drone_status' and dst == 'situation_control' \
+        and operation == 'check_earth':
+        authorized = True 
+    if src == 'drone_status' and dst == 'control_center' \
+        and operation == 'task_completed':
+        authorized = True 
+
+    return authorized
 ```
 
 ### Запуск приложения
 
-см. [инструкцию по запуску](test/hackaton/README.md)
+см. [инструкцию по запуску](../../README.md)
 
 
