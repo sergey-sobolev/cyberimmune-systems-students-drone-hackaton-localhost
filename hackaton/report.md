@@ -180,6 +180,6 @@ def check_operation(id, details):
 
 ### Запуск приложения
 
-см. [инструкцию по запуску](../../../README.md)
+см. [инструкцию по запуску](test/hackaton/README.md)
 
 
