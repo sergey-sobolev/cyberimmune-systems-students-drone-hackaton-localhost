@@ -1,0 +1,17 @@
+FROM python:3.8-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+
+ENV PYTHONUNBUFFERED=1
+
+COPY requirements.txt .
+RUN python -m pip install -r requirements.txt
+
+COPY inertial_navigation /inertial_navigation
+COPY config.ini /inertial_navigation/
+
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /inertial_navigation
+USER appuser
+
+WORKDIR /inertial_navigation
+CMD ["python", "inertial_navigation.py", "config.ini"]

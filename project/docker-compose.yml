@@ -1,0 +1,105 @@
+version: '3.4'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.0
+    container_name: zookeeper
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2183
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.2.0
+    container_name: broker
+    restart: always
+    ports:
+    # To learn about configuring Kafka for access across networks see
+    # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
+      - "9192:9192"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2183'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9192,PLAINTEXT_INTERNAL://broker:29192
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  
+  monitor:
+    image: monitor
+    build:
+      context: .
+      dockerfile: ./Dockerfile.monitor
+    volumes:
+      - ./storage/:/storage
+    depends_on:
+      - broker
+
+  mobile_connection:
+    image: mobile_connection
+    build:
+      context: .
+      dockerfile: ./Dockerfile.mobile_connection
+    depends_on:
+      - broker
+      - monitor
+    ports:
+      - "1010:1010"
+
+  control_center:
+    image: control_center
+    build:
+      context: .
+      dockerfile: ./Dockerfile.control_center
+    depends_on:
+      - broker
+      - monitor
+    ports:
+      - "1008:1008"
+
+  drone_status:
+    image: drone_status
+    build:
+      context: .
+      dockerfile: ./Dockerfile.drone_status
+    depends_on:
+      - broker
+      - monitor
+    ports:
+      - "1006:1006"
+  
+  flying_control:
+    image: flying_control
+    build:
+      context: .
+      dockerfile: ./Dockerfile.flying_control
+    depends_on:
+      - broker
+
+  
+  inertial_navigation:
+    image: inertial_navigation
+    build:
+      context: .
+      dockerfile: ./Dockerfile.inertial_navigation
+    depends_on:
+      - broker
+    
+  situation_control:
+    image: situation_control
+    build:
+      context: .
+      dockerfile: ./Dockerfile.situation_control
+    depends_on:
+      - broker
+
+  sprayer_control:
+    image: sprayer_control
+    build:
+      context: .
+      dockerfile: ./Dockerfile.sprayer_control
+    depends_on:
+      - broker 
